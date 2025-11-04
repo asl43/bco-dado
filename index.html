@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <style>
+    /* ---------------------------------- */
+    /* CSS - Estilos para a Interface */
+    /* ---------------------------------- */
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      background-color: #f4f4f9;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 400px;
+    }
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+    input[type="email"], input[type="password"] {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      display: inline-block;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 15px;
+      margin: 8px 0;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      width: 100%;
+      font-size: 16px;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .message {
+      text-align: center;
+      padding: 10px;
+      margin-bottom: 15px;
+      border-radius: 4px;
+    }
+    .error { background-color: #fdd; color: #d00; border: 1px solid #d00; }
+    .success { background-color: #ddf; color: #00d; border: 1px solid #00d; }
+    #link-area {
+      margin-top: 20px;
+      padding: 15px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      display: none; /* Esconder inicialmente */
+    }
+    #link-area p { margin-top: 0; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+<div class="container" id="auth-form">
+  <h2>Acesso Restrito</h2>
+  <div id="message" class="message" style="display:none;"></div>
+
+  <form id="login-form">
+    <h3>Login</h3>
+    <input type="email" id="login-email" placeholder="Seu Email" required>
+    <input type="password" id="login-senha" placeholder="Sua Senha" required>
+    <button type="submit">Entrar</button>
+  </form>
+
+  <hr>
+
+  <form id="cadastro-form">
+    <h3>Cadastro</h3>
+    <input type="email" id="cadastro-email" placeholder="Seu Email" required>
+    <input type="password" id="cadastro-senha" placeholder="Crie uma Senha" required>
+    <button type="submit">Cadastrar</button>
+  </form>
+</div>
+
+<div class="container" id="link-area">
+    <p>Bem-vindo(a)! Seus links permitidos:</p>
+    <div id="links-container"></div>
+    <button onclick="logout()">Sair</button>
+</div>
+
+<script>
+  /* ---------------------------------- */
+  /* JavaScript - Lógica do Frontend */
+  /* ---------------------------------- */
+
+  const authForm = document.getElementById('auth-form');
+  const linkArea = document.getElementById('link-area');
+  const messageElement = document.getElementById('message');
+  const linksContainer = document.getElementById('links-container');
+
+  function showMessage(type, text) {
+    messageElement.className = `message ${type}`;
+    messageElement.textContent = text;
+    messageElement.style.display = 'block';
+    setTimeout(() => {
+      messageElement.style.display = 'none';
+    }, 5000);
+  }
+
+  function handleCadastro(e) {
+    e.preventDefault();
+    const email = document.getElementById('cadastro-email').value;
+    const senha = document.getElementById('cadastro-senha').value;
+    
+    showMessage('success', 'Processando seu cadastro...');
+
+    // Chama a função 'cadastrarUsuario' no Apps Script
+    google.script.run
+      .withSuccessHandler(response => {
+        if (response.status === 'sucesso') {
+          showMessage('success', response.mensagem);
+          document.getElementById('cadastro-form').reset();
+        } else {
+          showMessage('error', response.mensagem);
+        }
+      })
+      .cadastrarUsuario(email, senha);
+  }
+
+  function handleLogin(e) {
+    e.preventDefault();
+    const email = document.getElementById('login-email').value;
+    const senha = document.getElementById('login-senha').value;
+
+    showMessage('success', 'Verificando login...');
+
+    // Chama a função 'verificarLogin' no Apps Script
+    google.script.run
+      .withSuccessHandler(response => {
+        if (response.status === 'sucesso') {
+          // Login OK, exibe a área de links
+          showMessage('success', response.mensagem);
+          
+          linksContainer.innerHTML = '';
+          const linksArray = response.links.split(',').map(link => link.trim()).filter(link => link);
+          
+          if (linksArray.length > 0) {
+            linksArray.forEach(url => {
+              const a = document.createElement('a');
+              a.href = url;
+              a.target = "_blank";
+              a.textContent = `Acessar Link: ${url}`;
+              a.style.display = 'block';
+              a.style.margin = '10px 0';
+              linksContainer.appendChild(a);
+            });
+          } else {
+            linksContainer.innerHTML = '<p>Nenhum link configurado para sua conta.</p>';
+          }
+          
+          authForm.style.display = 'none';
+          linkArea.style.display = 'block';
+
+        } else {
+          // Erro de login/permissão
+          showMessage('error', response.mensagem);
+        }
+      })
+      .verificarLogin(email, senha);
+  }
+
+  function logout() {
+    // Simplesmente oculta a área de links e mostra o formulário de autenticação
+    linkArea.style.display = 'none';
+    authForm.style.display = 'block';
+    document.getElementById('login-form').reset();
+    document.getElementById('cadastro-form').reset();
+  }
+
+  // Adicionar ouvintes de eventos
+  document.getElementById('cadastro-form').addEventListener('submit', handleCadastro);
+  document.getElementById('login-form').addEventListener('submit', handleLogin);
+
+</script>
+</body>
+</html>
