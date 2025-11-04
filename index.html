@@ -3,9 +3,6 @@
 <head>
   <base target="_top">
   <style>
-    /* ---------------------------------- */
-    /* CSS - Estilos para a Interface */
-    /* ---------------------------------- */
     body {
       font-family: Arial, sans-serif;
       display: flex;
@@ -63,7 +60,7 @@
       padding: 15px;
       border: 1px solid #ccc;
       border-radius: 4px;
-      display: none; /* Esconder inicialmente */
+      display: none;
     }
     #link-area p { margin-top: 0; font-weight: bold; }
   </style>
@@ -98,10 +95,6 @@
 </div>
 
 <script>
-  /* ---------------------------------- */
-  /* JavaScript - Lógica do Frontend */
-  /* ---------------------------------- */
-
   const authForm = document.getElementById('auth-form');
   const linkArea = document.getElementById('link-area');
   const messageElement = document.getElementById('message');
@@ -123,7 +116,6 @@
     
     showMessage('success', 'Processando seu cadastro...');
 
-    // Chama a função 'cadastrarUsuario' no Apps Script
     google.script.run
       .withSuccessHandler(response => {
         if (response.status === 'sucesso') {
@@ -143,60 +135,42 @@
 
     showMessage('success', 'Verificando login...');
 
-    // Chama a função 'verificarLogin' no Apps Script
     google.script.run
       .withSuccessHandler(response => {
         if (response.status === 'sucesso') {
-          // Login OK, exibe a área de links
           showMessage('success', response.mensagem);
           
-          l// Limpa os links anteriores
-linksContainer.innerHTML = '';
+          // Limpa os links anteriores
+          linksContainer.innerHTML = '';
 
-// response.links agora é um array de { nome, url }
-const linksArray = Array.isArray(response.links) ? response.links : [];
+          const linksArray = Array.isArray(response.links) ? response.links : [];
 
-if (linksArray.length > 0) {
-  linksArray.forEach(item => {
-    const a = document.createElement('a');
-    a.href = item.url;
-    a.target = "_blank";
-    a.rel = "noopener noreferrer"; // boa prática de segurança
-    a.textContent = item.nome || item.url; // usa nome, ou URL se não houver nome
-    a.style.display = 'block';
-    a.style.margin = '10px 0';
-    a.style.textDecoration = 'none';
-    a.style.color = '#1a0dab';
-    a.style.padding = '8px';
-    a.style.borderRadius = '4px';
-    a.style.backgroundColor = '#f8f9fa';
-    a.onmouseover = () => a.style.backgroundColor = '#e9ecef';
-    a.onmouseout = () => a.style.backgroundColor = '#f8f9fa';
-    linksContainer.appendChild(a);
-  });
-} else {
-  linksContainer.innerHTML = '<p>Nenhum link configurado para sua conta.</p>';
-}
-          
           if (linksArray.length > 0) {
-            linksArray.forEach(url => {
+            linksArray.forEach(item => {
               const a = document.createElement('a');
-              a.href = url;
+              a.href = item.url;
               a.target = "_blank";
-              a.textContent = `Acessar Link: ${url}`;
+              a.rel = "noopener noreferrer";
+              a.textContent = item.nome || item.url;
               a.style.display = 'block';
               a.style.margin = '10px 0';
+              a.style.textDecoration = 'none';
+              a.style.color = '#1a0dab';
+              a.style.padding = '8px';
+              a.style.borderRadius = '4px';
+              a.style.backgroundColor = '#f8f9fa';
+              a.onmouseover = () => a.style.backgroundColor = '#e9ecef';
+              a.onmouseout = () => a.style.backgroundColor = '#f8f9fa';
               linksContainer.appendChild(a);
             });
           } else {
             linksContainer.innerHTML = '<p>Nenhum link configurado para sua conta.</p>';
           }
-          
+
           authForm.style.display = 'none';
           linkArea.style.display = 'block';
 
         } else {
-          // Erro de login/permissão
           showMessage('error', response.mensagem);
         }
       })
@@ -204,17 +178,14 @@ if (linksArray.length > 0) {
   }
 
   function logout() {
-    // Simplesmente oculta a área de links e mostra o formulário de autenticação
     linkArea.style.display = 'none';
     authForm.style.display = 'block';
     document.getElementById('login-form').reset();
     document.getElementById('cadastro-form').reset();
   }
 
-  // Adicionar ouvintes de eventos
   document.getElementById('cadastro-form').addEventListener('submit', handleCadastro);
   document.getElementById('login-form').addEventListener('submit', handleLogin);
-
 </script>
 </body>
 </html>
