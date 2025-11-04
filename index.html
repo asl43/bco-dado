@@ -150,8 +150,33 @@
           // Login OK, exibe a área de links
           showMessage('success', response.mensagem);
           
-          linksContainer.innerHTML = '';
-          const linksArray = response.links.split(',').map(link => link.trim()).filter(link => link);
+          l// Limpa os links anteriores
+linksContainer.innerHTML = '';
+
+// response.links agora é um array de { nome, url }
+const linksArray = Array.isArray(response.links) ? response.links : [];
+
+if (linksArray.length > 0) {
+  linksArray.forEach(item => {
+    const a = document.createElement('a');
+    a.href = item.url;
+    a.target = "_blank";
+    a.rel = "noopener noreferrer"; // boa prática de segurança
+    a.textContent = item.nome || item.url; // usa nome, ou URL se não houver nome
+    a.style.display = 'block';
+    a.style.margin = '10px 0';
+    a.style.textDecoration = 'none';
+    a.style.color = '#1a0dab';
+    a.style.padding = '8px';
+    a.style.borderRadius = '4px';
+    a.style.backgroundColor = '#f8f9fa';
+    a.onmouseover = () => a.style.backgroundColor = '#e9ecef';
+    a.onmouseout = () => a.style.backgroundColor = '#f8f9fa';
+    linksContainer.appendChild(a);
+  });
+} else {
+  linksContainer.innerHTML = '<p>Nenhum link configurado para sua conta.</p>';
+}
           
           if (linksArray.length > 0) {
             linksArray.forEach(url => {
