@@ -140,7 +140,6 @@
         if (response.status === 'sucesso') {
           showMessage('success', response.mensagem);
           
-          // Limpa os links anteriores
           linksContainer.innerHTML = '';
 
           const linksArray = Array.isArray(response.links) ? response.links : [];
@@ -189,3 +188,4 @@
 </script>
 </body>
 </html>
+
